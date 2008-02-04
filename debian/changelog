@@ -1,0 +1,25 @@
+tcpser (1.0rc12-1) unstable; urgency=low
+
+  * New upstream release
+  * debian/tcpser.1: fixed typos, added -v option, added square
+    brackets where necessary
+  * src/init.c: reverted "Fixed typo in usage summary"
+  * debian/patches/01-usage-typo.dpatch: moved patch to dpatch
+  * Makefile: reverted "Added install rule to makefile"
+  * debian/rules, debian/install: moved install rule here
+  * debian/control: updated Standards-Version, added dpatch to
+    Build-Depends, added Vcs-Bzr field, added Homepage field
+  * debian/watch: added
+  * debian/copyright: updated year to 2008
+
+ -- Peter Collingbourne <pcc03@doc.ic.ac.uk>  Mon,  4 Feb 2008 12:51:33 +0000
+
+tcpser (1.0rc10-1) unstable; urgency=low
+
+  * Initial release (Closes: #376993)
+  * Added install rule to makefile
+  * Wrote man page
+  * Fixed typo in usage summary
+
+ -- Peter Collingbourne <pcc03@doc.ic.ac.uk>  Tue,  4 Jul 2006 18:17:01 -0700
+

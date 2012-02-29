@@ -2,10 +2,10 @@ Source: tcpser
 Section: net
 Priority: optional
 Maintainer: Peter Collingbourne <pcc03@doc.ic.ac.uk>
-Build-Depends: debhelper (>= 5), dpatch
+Build-Depends: debhelper (>= 9)
 Homepage: http://www.jbrain.com/pub/linux/serial/
 Vcs-Bzr: http://bzr.debian.org/collab-maint/tcpser/unstable/
-Standards-Version: 3.7.3
+Standards-Version: 3.9.3
 
 Package: tcpser
 Architecture: any

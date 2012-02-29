@@ -1,7 +1,6 @@
 #!/usr/bin/make -f
 # -*- makefile -*-
 
-include /usr/share/dpatch/dpatch.make
 
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
@@ -16,13 +15,12 @@ endif
 
 build: build-stamp
 
-build-stamp: patch
+build-stamp:
 	dh_testdir
 	$(MAKE) CFLAGS="$(CFLAGS)"
 	touch $@
 
-clean: clean-patched unpatch
-clean-patched:
+clean:
 	dh_testdir
 	dh_testroot
 	rm -f build-stamp
@@ -54,4 +52,4 @@ binary-arch: build install
 	dh_builddeb
 
 binary: binary-indep binary-arch
-.PHONY: build clean binary-indep binary-arch binary install patch unpatch
+.PHONY: build clean binary-indep binary-arch binary install

@@ -1,3 +1,11 @@
+tcpser (1.0rc12-1.1) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * Remove deprecated dpatch and upgrade to packaging format "3.0 quilt".
+  * Update to Standards-Version to 3.9.3 and debhelper to 9.
+
+ -- Jari Aalto <jari.aalto@cante.net>  Wed, 29 Feb 2012 10:56:47 -0500
+
 tcpser (1.0rc12-1) unstable; urgency=low
 
   * New upstream release

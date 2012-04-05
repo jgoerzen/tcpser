@@ -13,6 +13,10 @@ else
 	CFLAGS += -O2
 endif
 
+
+build-arch: build
+build-indep: build
+
 build: build-stamp
 
 build-stamp:
@@ -30,7 +34,7 @@ clean:
 install: build
 	dh_testdir
 	dh_testroot
-	dh_clean -k 
+	dh_prep 
 	dh_installdirs
 
 

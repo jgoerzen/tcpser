@@ -1,6 +1,6 @@
-tcpser (1.0rc12-1.1) unstable; urgency=low
+tcpser (1.0rc12-2) unstable; urgency=low
 
-  * Non-maintainer upload; ACKed by the maintainer, see #664359.
+  * QA upload.
   * Remove deprecated dpatch and upgrade to packaging format "3.0 quilt"
     (Closes: #664359).
   * Update to Standards-Version to 3.9.4, debhelper to 9, ${misc:Depends}.
@@ -9,7 +9,7 @@ tcpser (1.0rc12-1.1) unstable; urgency=low
   * Use hardened build flags
     http://wiki.debian.org/ReleaseGoals/SecurityHardeningBuildFlags
 
- -- Jari Aalto <jari.aalto@cante.net>  Fri, 26 Apr 2013 09:24:19 +0300
+ -- Jari Aalto <jari.aalto@cante.net>  Fri, 26 Apr 2013 09:29:41 +0300
 
 tcpser (1.0rc12-1) unstable; urgency=low
 

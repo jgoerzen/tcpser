@@ -1,7 +1,7 @@
 Source: tcpser
 Section: net
 Priority: optional
-Maintainer: Peter Collingbourne <pcc03@doc.ic.ac.uk>
+Maintainer: Debian QA Group <packages@qa.debian.org>
 Build-Depends: debhelper (>= 9)
 Homepage: http://www.jbrain.com/pub/linux/serial/
 Vcs-Bzr: http://bzr.debian.org/collab-maint/tcpser/unstable/

@@ -3,11 +3,11 @@ tcpser (1.0rc12-1.1) unstable; urgency=low
   * Non-maintainer upload; ACKed by the maintainer, see #664359.
   * Remove deprecated dpatch and upgrade to packaging format "3.0 quilt"
     (Closes: #664359).
-  * Update to Standards-Version to 3.9.3, debhelper to 9, ${misc:Depends}.
+  * Update to Standards-Version to 3.9.4, debhelper to 9, ${misc:Depends}.
   * Add build-arch and build-indep targets; use dh_prep in rules file.
   * Fix copyright-with-old-dh-make-debian-copyright (Lintian).
 
- -- Jari Aalto <jari.aalto@cante.net>  Thu, 05 Apr 2012 18:58:11 +0300
+ -- Jari Aalto <jari.aalto@cante.net>  Fri, 26 Apr 2013 09:00:30 +0300
 
 tcpser (1.0rc12-1) unstable; urgency=low
 

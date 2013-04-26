@@ -5,14 +5,15 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-CFLAGS = -Wall -g
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
-ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
-	CFLAGS += -O0
-else
-	CFLAGS += -O2
-endif
+LDFLAGS  = -lpthread  # From original Makefile
+LDFLAGS += $(shell dpkg-buildflags --get LDFLAGS)
+LDFLAGS += -Wl,--as-needed
 
+CPPFLAGS = $(shell dpkg-buildflags --get CPPFLAGS)
+CFLAGS   = $(shell dpkg-buildflags --get CFLAGS)
+CFLAGS  += -Wall -pedantic -g $(CPPFLAGS)
 
 build-arch: build
 build-indep: build
@@ -21,7 +22,7 @@ build: build-stamp
 
 build-stamp:
 	dh_testdir
-	$(MAKE) CFLAGS="$(CFLAGS)"
+	$(MAKE) CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)"
 	touch $@
 
 clean:

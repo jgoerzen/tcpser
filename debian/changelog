@@ -6,10 +6,11 @@ tcpser (1.0rc12-2) unstable; urgency=low
   * Update to Standards-Version to 3.9.4, debhelper to 9, ${misc:Depends}.
   * Add build-arch and build-indep targets; use dh_prep in rules file.
   * Fix copyright-with-old-dh-make-debian-copyright (Lintian).
+  * Move Alioth repository from Bzr to Git (git-buildpackage).
   * Use hardened build flags
     http://wiki.debian.org/ReleaseGoals/SecurityHardeningBuildFlags
 
- -- Jari Aalto <jari.aalto@cante.net>  Fri, 26 Apr 2013 09:29:41 +0300
+ -- Jari Aalto <jari.aalto@cante.net>  Fri, 26 Apr 2013 10:00:04 +0300
 
 tcpser (1.0rc12-1) unstable; urgency=low
 

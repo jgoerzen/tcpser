@@ -1,5 +1,6 @@
 tcpser (1.0rc12-2) unstable; urgency=low
 
+  [ Jari Aalto ]
   * QA upload.
   * Remove deprecated dpatch and upgrade to packaging format "3.0 quilt"
     (Closes: #664359).
@@ -10,7 +11,12 @@ tcpser (1.0rc12-2) unstable; urgency=low
   * Use hardened build flags
     http://wiki.debian.org/ReleaseGoals/SecurityHardeningBuildFlags
 
- -- Jari Aalto <jari.aalto@cante.net>  Fri, 26 Apr 2013 10:00:04 +0300
+  [ tony mancill ]
+  * Update d/watch file.  Thank you to Bart Martens.
+  * Add patch to address FTBFS with "ld --as-needed". (Closes: #641411)
+    - Thank you to Matthias Klose.
+
+ -- tony mancill <tmancill@debian.org>  Fri, 03 May 2013 21:27:26 -0700
 
 tcpser (1.0rc12-1) unstable; urgency=low
 

@@ -47,14 +47,14 @@ int accept_connection(modem_config *cfg)
   return 0;
 }
 
-
-int parse_ip_data(modem_config *cfg, char *data, int len)
+int parse_ip_data(modem_config *cfg, unsigned char *data, int len)
 {
   // I'm going to cheat and assume it comes in chunks.
   int i = 0;
-  char ch;
+  int ch;
   char text[1025];
   int text_len = 0;
+
 
   if (cfg->line_data.first_char == TRUE) {
     cfg->line_data.first_char = FALSE;
@@ -78,14 +78,15 @@ int parse_ip_data(modem_config *cfg, char *data, int len)
         case NVT_DONT:
           /// again, overflow issues...
           LOG(LOG_INFO, "Parsing nvt command");
-          parse_nvt_command(cfg->line_data.fd, &cfg->line_data.nvt_data, ch, data[i + 2]);
+          parse_nvt_command(cfg->line_data.fd, &cfg->line_data.nvt_data, ch,
+			    data[i + 2], cfg->parity);
           i += 3;
           break;
         case NVT_SB:   // sub negotiation
           // again, overflow...
           i +=
-            parse_nvt_subcommand(cfg->line_data.fd, &cfg->line_data.nvt_data, data + i,
-                                 len - i);
+            parse_nvt_subcommand(cfg->line_data.fd, &cfg->line_data.nvt_data,
+				 data + i, len - i, cfg->dce_speed);
           break;
         case NVT_IAC:
           if (cfg->line_data.nvt_data.binary_recv)
@@ -113,7 +114,7 @@ int parse_ip_data(modem_config *cfg, char *data, int len)
     }
   }
   else {
-    mdm_write(cfg, data, len);
+    mdm_write(cfg, (char *) data, len);
   }
   return 0;
 }
@@ -162,7 +163,7 @@ void *ip_thread(void *arg)
           LOG(LOG_DEBUG, "Read %d bytes from socket", res);
           buf[res] = 0;
           log_trace(TRACE_IP_IN, buf, res);
-          parse_ip_data(cfg, buf, res);
+          parse_ip_data(cfg, (unsigned char *) buf, res);
         }
       }
       if (FD_ISSET(cfg->data.cp[1][0], &readfs)) {      // pipe
@@ -181,6 +182,7 @@ void *ctrl_thread(void *arg)
   modem_config *cfg = (modem_config *) arg;
   int status;
   int new_status;
+
 
   LOG_ENTER();
 
@@ -207,7 +209,6 @@ void *ctrl_thread(void *arg)
   exit(-1);
 }
 
-
 int spawn_ctrl_thread(modem_config *cfg)
 {
   int rc;
@@ -227,6 +228,7 @@ int spawn_ip_thread(modem_config *cfg)
 {
   int rc;
   pthread_t thread_id;
+
 
   rc = pthread_create(&thread_id, NULL, ip_thread, (void *) cfg);
   LOG(LOG_ALL, "IP thread ID=%d", (int) thread_id);
@@ -338,7 +340,7 @@ void *run_bridge(void *arg)
       if (cfg->pre_break_delay == FALSE || cfg->break_len == 3) {
         LOG(LOG_ALL, "Setting timer for break delay");
         timer.tv_sec = 0;
-        timer.tv_usec = cfg->s[12] * 20000;
+        timer.tv_usec = cfg->s[SRegisterGuardTime] * 20000;
         ptimer = &timer;
       }
       else if (cfg->pre_break_delay == TRUE && cfg->break_len > 0) {
@@ -383,7 +385,6 @@ void *run_bridge(void *arg)
         }
         else
           mdm_send_ring(cfg);
-
       }
       else
         mdm_handle_timeout(cfg);

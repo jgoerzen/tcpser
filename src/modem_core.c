@@ -5,6 +5,8 @@
 #include "debug.h"
 #include "modem_core.h"
 
+#define gen_parity(v) (((((v) * 0x0101010101010101ULL) & 0x8040201008040201ULL) % 0x1FF) & 1)
+
 char *mdm_responses[37];
 
 int mdm_init()
@@ -32,7 +34,6 @@ int mdm_init()
   mdm_responses[MDM_RESP_CONNECT_234000] = "CONNECT 230400";
   return 0;
 }
-
 
 int get_connect_response(int speed, int level)
 {
@@ -66,6 +67,7 @@ void mdm_init_config(modem_config *cfg)
 {
   int i = 0;
 
+
   cfg->send_responses = TRUE;
   cfg->connect_response = 0;
   cfg->response_code_level = 4;
@@ -80,20 +82,20 @@ void mdm_init_config(modem_config *cfg)
   for (i = 0; i < 100; i++) {
     cfg->s[i] = 0;
   }
-  cfg->s[2] = 43;
-  cfg->s[3] = 13;
-  cfg->s[4] = 10;
-  cfg->s[5] = 8;
-  cfg->s[6] = 2;
-  cfg->s[7] = 50;
-  cfg->s[8] = 2;
-  cfg->s[9] = 6;
-  cfg->s[10] = 14;
-  cfg->s[11] = 95;
-  cfg->s[12] = 50;
+  cfg->s[SRegisterBreak] = 43;
+  cfg->s[SRegisterCR] = 13;
+  cfg->s[SRegisterLF] = 10;
+  cfg->s[SRegisterBackspace] = 8;
+  cfg->s[SRegisterBlindWait] = 2;
+  cfg->s[SRegisterCarrierWait] = 50;
+  cfg->s[SRegisterCommaPause] = 2;
+  cfg->s[SRegisterCarrierTime] = 6;
+  cfg->s[SRegisterCarrierLoss] = 14;
+  cfg->s[SRegisterDTMFTime] = 95;
+  cfg->s[SRegisterGuardTime] = 50;
 
-  cfg->crlf[0] = cfg->s[3];
-  cfg->crlf[1] = cfg->s[4];
+  cfg->crlf[0] = cfg->s[SRegisterCR];
+  cfg->crlf[1] = cfg->s[SRegisterLF];
   cfg->crlf[2] = 0;
 
   cfg->dial_type = 0;
@@ -118,7 +120,6 @@ void mdm_init_config(modem_config *cfg)
 
   dce_init_config(cfg);
   sh_init_config(cfg);
-  line_init_config(cfg);
 }
 
 int get_new_cts_state(modem_config *cfg, int up)
@@ -155,6 +156,7 @@ int mdm_set_control_lines(modem_config *cfg)
   int state = 0;
   int up = (cfg->conn_type == MDM_CONN_NONE ? FALSE : TRUE);
 
+
   state |= get_new_cts_state(cfg, up);
   state |= get_new_dsr_state(cfg, up);
   state |= get_new_dcd_state(cfg, up);
@@ -168,40 +170,40 @@ int mdm_set_control_lines(modem_config *cfg)
   return 0;
 }
 
+/* Write single char bypassing parity generation since this mirrors input */
 void mdm_write_char(modem_config *cfg, char data)
 {
   char str[2];
 
+
   str[0] = data;
-  mdm_write(cfg, str, 1);
+  dce_write(cfg, str, 1);
 }
 
-void mdm_write(modem_config *cfg, char data[], int len)
-{
-  if (cfg->allow_transmit == TRUE) {
-    dce_write(cfg, data, len);
-  }
-}
-
-void mdm_write_parity(modem_config *cfg, char *data, int len)
+void mdm_write(modem_config *cfg, char *data, int len)
 {
   unsigned char *buf;
   int i;
   unsigned int v;
 
-  
-  if (cfg->allow_transmit == TRUE) {
-    buf = malloc(len);
-    memcpy(buf, data, len);
 
-    for (i = 0; i < len; i++) {
-      v = buf[i];
-      v = (((v * 0x0101010101010101ULL) & 0x8040201008040201ULL) % 0x1FF) & 1;
-      buf[i] |= (((cfg->parity >> !v)) & 1) << 7;
-    }
+  if (cfg->allow_transmit == TRUE) {
+    if (cfg->parity) {
+      buf = malloc(len);
+      memcpy(buf, data, len);
+
+      for (i = 0; i < len; i++) {
+	buf[i] &= 0x7f;
+	v = buf[i];
+	v = gen_parity(v);
+	buf[i] |= (((cfg->parity >> v)) & 1) << 7;
+      }
     
-    mdm_write(cfg, (char *) buf, len);
-    free(buf);
+      dce_write(cfg, (char *) buf, len);
+      free(buf);
+    }
+    else
+      dce_write(cfg, data, len);
   }
 }
 
@@ -209,25 +211,25 @@ void mdm_send_response(int msg, modem_config *cfg)
 {
   char msgID[17];
 
+
   LOG(LOG_DEBUG, "Sending %s response to modem", mdm_responses[msg]);
   if (cfg->send_responses == TRUE) {
-    mdm_write_parity(cfg, cfg->crlf, 2);
+    mdm_write(cfg, cfg->crlf, 2);
     if (cfg->text_responses == TRUE) {
       LOG(LOG_ALL, "Sending text response");
-      mdm_write_parity(cfg, mdm_responses[msg], strlen(mdm_responses[msg]));
+      mdm_write(cfg, mdm_responses[msg], strlen(mdm_responses[msg]));
     }
     else {
       LOG(LOG_ALL, "Sending numeric response");
       sprintf(msgID, "%d", msg);
-      mdm_write_parity(cfg, msgID, strlen(msgID));
+      mdm_write(cfg, msgID, strlen(msgID));
     }
-    mdm_write_parity(cfg, cfg->crlf, 2);
+    mdm_write(cfg, cfg->crlf, 2);
   }
 }
 
 int mdm_off_hook(modem_config *cfg)
 {
-
   LOG(LOG_INFO, "taking modem off hook");
   cfg->off_hook = TRUE;
   cfg->cmd_mode = FALSE;
@@ -257,6 +259,7 @@ int mdm_answer(modem_config *cfg)
 int mdm_print_speed(modem_config *cfg)
 {
   int speed;
+
 
   switch (cfg->connect_response) {
   case 2:
@@ -288,16 +291,15 @@ int mdm_connect(modem_config *cfg)
   return 0;
 }
 
-
 int mdm_listen(modem_config *cfg)
 {
   return line_listen(cfg);
 }
 
-
 int mdm_disconnect(modem_config *cfg)
 {
   int type;
+
 
   LOG_ENTER();
   LOG(LOG_INFO, "Disconnecting modem");
@@ -334,6 +336,7 @@ int mdm_parse_cmd(modem_config *cfg)
   int cmd = AT_CMD_NONE;
   char *command = cfg->cur_line;
   char tmp[256];
+
 
   LOG_ENTER();
 
@@ -465,10 +468,10 @@ int mdm_parse_cmd(modem_config *cfg)
       cfg->s[num] = atoi(tmp);
       switch (num) {
       case 3:
-        cfg->crlf[0] = cfg->s[3];
+        cfg->crlf[0] = cfg->s[SRegisterCR];
         break;
       case 4:
-        cfg->crlf[1] = cfg->s[4];
+        cfg->crlf[1] = cfg->s[SRegisterLF];
         break;
       }
       break;
@@ -561,6 +564,33 @@ int mdm_parse_cmd(modem_config *cfg)
   return cmd;
 }
 
+int detect_parity(modem_config *cfg)
+{
+  int parity, eobits;
+  int charA, charT, charCR;
+
+
+  charA = cfg->pchars[0];
+  charT = cfg->pchars[1];
+  charCR = cfg->pchars[2];
+  
+  parity = (charA & 0x80) >> 7;
+  parity |= (charT & 0x80) >> 6;
+  parity |= (charCR & 0x80) >> 5;
+
+  eobits = gen_parity(charA & 0x7f);
+  eobits |= gen_parity(charT & 0x7f) << 1;
+  eobits |= gen_parity(charCR & 0x7f) << 2;
+
+  if (parity == eobits)
+    return 2;
+
+  if (parity && (parity ^ eobits) == (parity | eobits))
+    return 1;
+
+  return parity & 0x3;
+}
+
 int mdm_handle_char(modem_config *cfg, char ch)
 {
   int parbit = ch & 0x80;
@@ -571,16 +601,18 @@ int mdm_handle_char(modem_config *cfg, char ch)
   if (cfg->echo == TRUE)
     mdm_write_char(cfg, (ch | parbit));
   if (cfg->cmd_started == TRUE) {
-    if (ch == (char) (cfg->s[5])) {
+    if (ch == (char) (cfg->s[SRegisterBackspace])) {
       if (cfg->cur_line_idx == 0 && cfg->echo == TRUE) {
-        mdm_write_char(cfg, 'T');
+        mdm_write(cfg, "T", 1);
       }
       else {
         cfg->cur_line_idx--;
       }
     }
-    else if (ch == (char) (cfg->s[3])) {
+    else if (ch == (char) (cfg->s[SRegisterCR])) {
       // we have a line, process.
+      cfg->pchars[2] = ch | parbit;
+      cfg->parity = detect_parity(cfg);
       cfg->cur_line[cfg->cur_line_idx] = 0;
       strncpy(cfg->last_cmd, cfg->cur_line, sizeof(cfg->last_cmd) - 1);
       mdm_parse_cmd(cfg);
@@ -595,7 +627,7 @@ int mdm_handle_char(modem_config *cfg, char ch)
     if (ch == 't' || ch == 'T') {
       cfg->cmd_started = TRUE;
       LOG(LOG_ALL, "'T' parsed in serial stream, switching to command parse mode");
-      cfg->parity |= parbit >> 6;
+      cfg->pchars[1] = ch | parbit;
     }
     else if (ch == '/') {
       LOG(LOG_ALL, "'/' parsed in the serial stream, replaying last command");
@@ -603,7 +635,6 @@ int mdm_handle_char(modem_config *cfg, char ch)
       strncpy(cfg->cur_line, cfg->last_cmd, cfg->cur_line_idx);
       mdm_parse_cmd(cfg);
       cfg->cmd_started = FALSE;
-      cfg->parity |= parbit >> 6;
     }
     else if (ch != 'a' && ch != 'A') {
       cfg->found_a = FALSE;
@@ -613,7 +644,7 @@ int mdm_handle_char(modem_config *cfg, char ch)
   else if (ch == 'a' || ch == 'A') {
     LOG(LOG_ALL, "'A' parsed in serial stream");
     cfg->found_a = TRUE;
-    cfg->parity = parbit >> 7;
+    cfg->pchars[0] = ch | parbit;
   }
   return 0;
 }
@@ -628,6 +659,8 @@ int mdm_clear_break(modem_config *cfg)
 int mdm_parse_data(modem_config *cfg, char *data, int len)
 {
   int i;
+  int ch;
+
 
   if (cfg->cmd_mode == TRUE) {
     for (i = 0; i < len; i++) {
@@ -638,7 +671,10 @@ int mdm_parse_data(modem_config *cfg, char *data, int len)
     line_write(cfg, data, len);
     if (cfg->pre_break_delay == TRUE) {
       for (i = 0; i < len; i++) {
-        if (data[i] == (char) cfg->s[2]) {
+	ch = data[i];
+	if (cfg->parity)
+	  ch &= 0x7f;
+        if (ch == (char) cfg->s[SRegisterBreak]) {
           LOG(LOG_DEBUG, "Break character received");
           cfg->break_len++;
           if (cfg->break_len > 3) {     // more than 3, considered invalid

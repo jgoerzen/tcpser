@@ -49,7 +49,6 @@
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #endif
 
-
 typedef struct line_config {
   int valid_conn;
   int fd;
@@ -85,6 +84,20 @@ typedef struct dce_config {
   int ip232_dcd;
   int ip232_iac;
 } dce_config;
+
+enum {
+  SRegisterBreak = 2,
+  SRegisterCR = 3,
+  SRegisterLF = 4,
+  SRegisterBackspace = 5,
+  SRegisterBlindWait = 6,
+  SRegisterCarrierWait = 7,
+  SRegisterCommaPause = 8,
+  SRegisterCarrierTime = 9,
+  SRegisterCarrierLoss = 10,
+  SRegisterDTMFTime = 11,
+  SRegisterGuardTime = 12,
+};
 
 typedef struct modem_config {
   // master configuration information
@@ -132,6 +145,7 @@ typedef struct modem_config {
   int disconnect_delay;
   char crlf[3];
   int parity;
+  unsigned char pchars[3];
 } modem_config;
 
 int mdm_init(void);
@@ -140,7 +154,6 @@ int get_new_cts_state(modem_config *cfg, int up);
 int get_new_dsr_state(modem_config *cfg, int up);
 int get_new_dcd_state(modem_config *cfg, int up);
 int mdm_set_control_lines(modem_config *cfg);
-void mdm_write_char(modem_config *cfg, char data);
 void mdm_write(modem_config *cfg, char data[], int len);
 void mdm_send_response(int msg, modem_config *cfg);
 int mdm_off_hook(modem_config *cfg);

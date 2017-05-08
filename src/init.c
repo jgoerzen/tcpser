@@ -9,11 +9,13 @@ void print_help(char *name)
 {
   fprintf(stderr, "Usage: %s <parameters>\n", name);
   fprintf(stderr, "  -p   port to listen on (defaults to 6400)\n");
+  fprintf(stderr, "               -- or -- \n");
+  fprintf(stderr, "  -p  ip_address:port to specify which ip address and port to listen on.\n");
   fprintf(stderr, "  -t   trace flags: (can be combined)\n");
   fprintf(stderr, "       's' = modem input\n");
   fprintf(stderr, "       'S' = modem output\n");
   fprintf(stderr, "       'i' = IP input\n");
-  fprintf(stderr, "       'I' = IP input\n");
+  fprintf(stderr, "       'I' = IP output\n");
   fprintf(stderr, "  -l   0 (NONE), 1 (FATAL) - 7 (DEBUG_X) (defaults to 0)\n");
   fprintf(stderr, "  -L   log file (defaults to stderr)\n");
   fprintf(stderr, "\n");
@@ -40,9 +42,8 @@ void print_help(char *name)
   exit(1);
 }
 
-int init(int argc,
-         char **argv,
-         modem_config cfg[], int max_modem, int *port, char *all_busy, int all_busy_len)
+int init(int argc, char **argv, modem_config cfg[], int max_modem, char **ip_addr,
+	 int *port, char *all_busy, int all_busy_len)
 {
   int i = 0;
   int j = 0;
@@ -51,6 +52,7 @@ int init(int argc,
   char *tok;
   int dce_set = FALSE;
   int tty_set = FALSE;
+
 
   LOG_ENTER();
   *port = 6400;
@@ -109,7 +111,12 @@ int init(int argc,
       cfg[i].invert_dcd = TRUE;
       break;
     case 'p':
-      *port = (atoi(optarg));
+      if (strstr(optarg, ":") > 0) {
+	*ip_addr = strtok(optarg, ":");
+	*port = (atoi(strtok(NULL,":")));
+      }
+      else
+	*port = (atoi(optarg));
       break;
     case 'n':
       tok = strtok(optarg, "=");

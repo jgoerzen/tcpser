@@ -3,6 +3,8 @@ Tue,  4 Jul 2006 18:17:01 -0700.
 
 It was downloaded from http://www.jbrain.com/pub/linux/serial
 
+It includes patches from https://github.com/FozzTexx/tcpser
+
 Upstream Author: Jim Brain <brain@jbrain.com>
 
 Copyright: Copyright (C) 2008 Jim Brain

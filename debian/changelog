@@ -1,3 +1,11 @@
+tcpser (1.0rc12.fz1.20170403-1) unstable; urgency=low
+
+  * Integrate FozzTexx patches from https://github.com/FozzTexx/tcpser
+    as new upstream; fixes telnet and parity bugs.
+  * Update copyright file to show location of patches.
+
+ -- John Goerzen <jgoerzen@complete.org>  Mon, 08 May 2017 00:14:38 -0500
+
 tcpser (1.0rc12-2) unstable; urgency=low
 
   [ Jari Aalto ]

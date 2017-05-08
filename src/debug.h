@@ -16,18 +16,17 @@
 #define TRACE_IP_IN 4
 #define TRACE_IP_OUT 8
 
-#include <stdio.h>  // needed for strerror
-#include <string.h>  // needed for strerror
-#include <errno.h>   // needed for errno
+#include <stdio.h>      // needed for strerror
+#include <string.h>     // needed for strerror
+#include <errno.h>      // needed for errno
 
 #if __STDC_VERSION__ < 199901L
-    # if __GNUC__ >= 2
-    #  define __func__ __FUNCTION__
-    # else
-    #  define __func__ "<unknown>"
-    # endif
+#if __GNUC__ >= 2
+#define __func__ __FUNCTION__
+#else
+#define __func__ "<unknown>"
 #endif
-
+#endif
 
 #define LOG(a,args...) do { \
                          if(a <= log_level) { \
@@ -46,14 +45,14 @@
                          } \
                        } while(0)
 
-#define LOG_ENTER() LOG(LOG_ENTER_EXIT,"Entering %s function",__func__); 
-#define LOG_EXIT() LOG(LOG_ENTER_EXIT,"Exitting %s function",__func__); 
+#define LOG_ENTER() LOG(LOG_ENTER_EXIT,"Entering %s function",__func__);
+#define LOG_EXIT() LOG(LOG_ENTER_EXIT,"Exitting %s function",__func__);
 int log_init(void);
-void log_set_file(FILE* a);
+void log_set_file(FILE * a);
 void log_set_level(int a);
 int log_get_trace_flags();
 void log_set_trace_flags(int a);
-void log_trace(int type, unsigned char* line, int len);
+void log_trace(int type, char *line, int len);
 void log_start(int level);
 void log_end();
 
@@ -64,7 +63,6 @@ void log_end();
 #include <stdio.h>
 
 extern int log_level;
-extern FILE* log_file;
+extern FILE *log_file;
 
 #endif
-
